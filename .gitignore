@@ -1,0 +1,38 @@
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+**/build/
+
+# Local SDK and machine-specific files
+local.properties
+
+# Native build outputs
+.externalNativeBuild/
+.cxx/
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+*.jks
+*.keystore
+*.store
+
+# Keep runtime signing keystore private
+app/src/main/assets/release.store
+
+# Optional captures and notes
+captures/
+
+APK_BUILD_STEPS.md
