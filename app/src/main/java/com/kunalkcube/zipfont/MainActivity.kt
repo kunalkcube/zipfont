@@ -39,7 +39,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.InstallMobile
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -72,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.kunalkcube.zipfont.processor.ApkProcessor
 import com.kunalkcube.zipfont.ui.theme.ZipFontTheme
+import com.kunalkcube.zipfont.update.UpdateChecker
 import com.kunalkcube.zipfont.viewmodel.MainViewModel
 import java.io.File
 
@@ -112,6 +115,14 @@ fun ZipFontScreen(
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
     val generatedApk by viewModel.generatedApk.collectAsState()
+    val updateInfo by viewModel.updateInfo.collectAsState()
+
+    if (updateInfo != null) {
+        UpdateAlertDialog(
+            updateInfo = updateInfo!!,
+            onDismiss = { viewModel.dismissUpdate() }
+        )
+    }
 
     val fontPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -311,6 +322,77 @@ private fun HomeFooter() {
             )
         }
     }
+}
+
+@Composable
+private fun UpdateAlertDialog(
+    updateInfo: UpdateChecker.UpdateInfo,
+    onDismiss: () -> Unit
+) {
+    val uriHandler = LocalUriHandler.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = UiPalette.Panel,
+        titleContentColor = UiPalette.TextPrimary,
+        textContentColor = UiPalette.TextSecondary,
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.NewReleases,
+                contentDescription = null,
+                tint = UiPalette.Accent,
+                modifier = Modifier.size(32.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Update Available",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "v${updateInfo.latestVersion} is available (you have v${updateInfo.currentVersion})",
+                    color = UiPalette.Accent,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = updateInfo.releaseNotes.take(300).let {
+                        if (updateInfo.releaseNotes.length > 300) "$it..." else it
+                    },
+                    color = UiPalette.TextSecondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    uriHandler.openUri(updateInfo.htmlUrl)
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = UiPalette.Accent,
+                    contentColor = UiPalette.AccentInk
+                )
+            ) {
+                Text("View Release")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = UiPalette.TextSecondary
+                )
+            ) {
+                Text("Dismiss")
+            }
+        }
+    )
 }
 
 @Composable

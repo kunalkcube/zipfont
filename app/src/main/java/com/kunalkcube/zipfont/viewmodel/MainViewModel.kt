@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kunalkcube.zipfont.processor.ApkProcessor
+import com.kunalkcube.zipfont.update.UpdateChecker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _generatedApk = MutableStateFlow<File?>(null)
     val generatedApk: StateFlow<File?> = _generatedApk.asStateFlow()
+
+    private val _updateInfo = MutableStateFlow<UpdateChecker.UpdateInfo?>(null)
+    val updateInfo: StateFlow<UpdateChecker.UpdateInfo?> = _updateInfo.asStateFlow()
+
+    init {
+        checkForUpdate()
+    }
+
+    private fun checkForUpdate() {
+        viewModelScope.launch {
+            _updateInfo.value = UpdateChecker.checkForUpdate(getApplication())
+        }
+    }
+
+    fun dismissUpdate() {
+        _updateInfo.value = null
+    }
 
     fun selectFont(uri: Uri) {
         viewModelScope.launch {

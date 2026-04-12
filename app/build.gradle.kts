@@ -23,15 +23,27 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        setProperty("archivesBaseName", "zipfont-v${versionName}")
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -48,28 +60,10 @@ android {
     buildFeatures {
         compose = true
     }
-    packaging {
-        jniLibs {
-            useLegacyPackaging = true
-        }
-    }
+
     @Suppress("DEPRECATION")
     aaptOptions {
         noCompress("zip")
-    }
-}
-
-tasks.whenTaskAdded {
-    if (name == "compressDebugAssets") {
-        doLast {
-            val src = file("src/main/assets/skeleton.zip")
-            val mergedAssets = layout.buildDirectory.dir("intermediates/assets/debug/mergeDebugAssets").get().asFile
-            val dest = File(mergedAssets, "skeleton.zip")
-            if (src.exists() && dest.exists() && src.length() != dest.length()) {
-                src.copyTo(dest, overwrite = true)
-                println("Restored uncompressed skeleton.zip (was ${dest.length()}, now ${src.length()} bytes)")
-            }
-        }
     }
 }
 
